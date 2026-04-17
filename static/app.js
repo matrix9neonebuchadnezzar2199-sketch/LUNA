@@ -31,10 +31,77 @@ function renderLogs(logs) {
   for (const log of logs) {
     const line = document.createElement("div");
     line.className = `log-line ${sceneClass(log.scene)}`;
-    line.textContent = `${log.timestamp} [${log.scene}] ${log.description}`;
+    const at = log.action_type ? ` ${log.action_type}` : "";
+    line.textContent = `${log.timestamp} [${log.scene}]${at} ${log.description}`;
     els.logArea.appendChild(line);
   }
   els.logArea.scrollTop = els.logArea.scrollHeight;
+}
+
+const keyToPadId = {
+  up: "pad-up",
+  down: "pad-down",
+  left: "pad-left",
+  right: "pad-right",
+  enter: "pad-a",
+  space: "pad-b",
+  escape: "pad-select",
+};
+
+const padTimers = {};
+let lastPadSyncKey = null;
+
+function flashGamepad(type, key, x, y) {
+  const lastInput = document.getElementById("last-input");
+  if (!lastInput) return;
+
+  if (type === "key" && key) {
+    const padId = keyToPadId[String(key).toLowerCase()];
+    if (padId) {
+      const el = document.getElementById(padId);
+      if (el) {
+        el.classList.add("active");
+        if (padTimers[padId]) clearTimeout(padTimers[padId]);
+        padTimers[padId] = setTimeout(() => {
+          el.classList.remove("active");
+        }, 800);
+      }
+    }
+    lastInput.textContent = `最後の入力: KEY [${String(key).toUpperCase()}]`;
+  } else if (type === "click") {
+    const el = document.getElementById("pad-start");
+    if (el) {
+      el.classList.add("active");
+      el.textContent = "TAP";
+      if (padTimers.click) clearTimeout(padTimers.click);
+      padTimers.click = setTimeout(() => {
+        el.classList.remove("active");
+        el.textContent = "START";
+      }, 800);
+    }
+    lastInput.textContent = `最後の入力: CLICK (${x}, ${y})`;
+  } else if (type === "wait") {
+    lastInput.textContent = "最後の入力: WAIT（待機中）";
+  }
+}
+
+function syncGamepadFromLogs(logs) {
+  if (!logs || logs.length === 0) return;
+  const latest = logs[logs.length - 1];
+  const key = `${latest.timestamp}|${latest.action_type}|${latest.scene}|${latest.description}`;
+  if (key === lastPadSyncKey) return;
+  lastPadSyncKey = key;
+
+  const at = latest.action_type || "";
+  if (at.startsWith("key:")) {
+    flashGamepad("key", at.slice(4), null, null);
+  } else if (at.startsWith("click:")) {
+    const rest = at.slice(6);
+    const [cx, cy] = rest.split(",");
+    flashGamepad("click", null, cx, cy);
+  } else if (at === "wait") {
+    flashGamepad("wait", null, null, null);
+  }
 }
 
 function setBadge(state) {
@@ -130,6 +197,7 @@ async function pollStatus() {
     const st = await fetchJson("/api/status");
     applyUiState(st.state);
     renderLogs(st.logs || []);
+    syncGamepadFromLogs(st.logs || []);
     const stats = st.stats || {};
     els.statUptime.textContent = stats.uptime || "—";
     els.statBattles.textContent = String(stats.battle_count ?? 0);

@@ -13,9 +13,20 @@ import capture
 import config
 import vlm
 import window_manager
-from models import AppState, LogEntry, StatusResponse
+from models import AppState, GameAction, LogEntry, StatusResponse
 
 logger = logging.getLogger(__name__)
+
+
+def _format_action_type_for_log(action: GameAction) -> str:
+    """UI ゲームパッド連動用: key:right / click:x,y / wait"""
+    t = action.type
+    if t == "key":
+        k = (action.key or "").strip().lower()
+        return f"key:{k}" if k else "key:"
+    if t == "click":
+        return f"click:{action.x},{action.y}"
+    return "wait"
 
 
 class MonitorEngine:
@@ -94,7 +105,7 @@ class MonitorEngine:
                 if self.target_hwnd is None or not window_manager.window_exists(
                     self.target_hwnd
                 ):
-                    self._add_log("error", "wait", "対象ウィンドウが見つかりません")
+                    self._add_log("error", "error", "対象ウィンドウが見つかりません")
                     self.stats["error_count"] += 1
                     self.state = AppState.ERROR
                     break
@@ -121,7 +132,7 @@ class MonitorEngine:
 
                 self._add_log(
                     vlm_result.scene,
-                    vlm_result.action.type,
+                    _format_action_type_for_log(vlm_result.action),
                     vlm_result.description,
                 )
 
@@ -129,13 +140,13 @@ class MonitorEngine:
                 await self._interruptible_sleep(wait_time)
 
             except asyncio.TimeoutError:
-                self._add_log("error", "wait", "VLM推論タイムアウト")
+                self._add_log("error", "error", "VLM推論タイムアウト")
                 self.stats["error_count"] += 1
                 await self._interruptible_sleep(3.0)
             except asyncio.CancelledError:
                 raise
             except Exception as e:
-                self._add_log("error", "wait", str(e)[:50])
+                self._add_log("error", "error", str(e)[:50])
                 self.stats["error_count"] += 1
                 await self._interruptible_sleep(3.0)
 
