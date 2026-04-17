@@ -5,6 +5,7 @@ FastAPI サーバーのメインファイル。エントリーポイント。
 from __future__ import annotations
 
 import os
+from contextlib import asynccontextmanager
 
 os.environ.setdefault("PYTHONIOENCODING", "utf-8")
 os.environ.setdefault("PYTHONUTF8", "1")
@@ -30,23 +31,19 @@ logger = logging.getLogger("luna.server")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 
-app = FastAPI(title="LUNA")
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-
 engine = MonitorEngine()
 
 
-@app.on_event("startup")
-async def _startup() -> None:
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     logger.info("起動処理: モデルロードを開始します")
     try:
         vlm.load_model()
     except Exception as e:
         logger.exception("モデルロード中に予期しないエラー: %s", e)
 
+    yield
 
-@app.on_event("shutdown")
-async def _shutdown() -> None:
     logger.info("シャットダウン: 監視停止とモデルアンロード")
     try:
         await engine.stop()
@@ -56,6 +53,10 @@ async def _shutdown() -> None:
         vlm.unload_model()
     except Exception as e:
         logger.exception("vlm.unload_model 失敗: %s", e)
+
+
+app = FastAPI(title="LUNA", lifespan=lifespan)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 @app.get("/")

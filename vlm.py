@@ -58,7 +58,8 @@ SYSTEM_PROMPT = """あなたはRPGゲーム「アナザーエデン」を操作�
 
 def _first_repo_file(repo_id: str, pattern: str) -> str:
     names = list_repo_files(repo_id=repo_id)
-    hits = sorted(n for n in names if fnmatch(n, pattern))
+    pat = pattern.lower()
+    hits = sorted(n for n in names if fnmatch(n.lower(), pat))
     if not hits:
         raise FileNotFoundError(
             f"No file matching pattern {pattern!r} in repo {repo_id}"
