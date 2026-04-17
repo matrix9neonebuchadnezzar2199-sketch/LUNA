@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LUNA</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <header class="header">
+      <h1>🌙 LUNA - Local Unit & Network Assistant</h1>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <h2>対象ウィンドウ</h2>
+        <div class="row">
+          <select id="window-select" aria-label="ウィンドウ一覧"></select>
+          <button type="button" id="btn-refresh-windows">一覧更新</button>
+          <button type="button" id="btn-select-window">選択</button>
+        </div>
+        <div class="preview-wrap">
+          <p class="muted">プレビュー</p>
+          <img id="preview" alt="ウィンドウプレビュー" />
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>プロンプト（AI への指示）</h2>
+        <textarea id="prompt" rows="4" aria-label="プロンプト">フィールドを左右に移動して。
+戦闘が始まったら攻撃ボタンを押して倒して。
+リザルト画面が出たらタップしてフィールドに戻って移動を続けて。</textarea>
+      </section>
+
+      <section class="card">
+        <h2>コントロール</h2>
+        <div class="row controls">
+          <button type="button" id="btn-start">▶ 開始</button>
+          <button type="button" id="btn-pause">⏸ 一時停止</button>
+          <button type="button" id="btn-resume">▶ 再開</button>
+          <button type="button" id="btn-stop">■ 停止</button>
+          <span id="status-badge" class="badge badge-idle">IDLE</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>ログ</h2>
+        <div id="log-area" class="log-area" aria-live="polite"></div>
+      </section>
+
+      <section class="card">
+        <h2>統計</h2>
+        <p class="stats-line">
+          稼働時間: <span id="stat-uptime">—</span>　戦闘回数:
+          <span id="stat-battles">0</span>　エラー回数:
+          <span id="stat-errors">0</span>
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p id="footer-model">VLM: 状態確認中…</p>
+    </footer>
+
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>

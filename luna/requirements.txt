@@ -1,0 +1,9 @@
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+llama-cpp-python==0.3.8
+mss==9.0.2
+pyautogui==0.9.54
+pywin32==310
+Pillow==11.2.1
+huggingface-hub==0.30.2
+pydantic==2.11.1
