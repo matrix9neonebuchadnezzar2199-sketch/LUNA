@@ -7,6 +7,7 @@ from __future__ import annotations
 import gc
 import json
 import logging
+import os
 import re
 from fnmatch import fnmatch
 from typing import Any
@@ -110,33 +111,43 @@ def load_model() -> None:
         logger.exception("モデルファイルの取得に失敗: %s", e)
         return
 
+    logger.info("モデルファイル: %s", os.path.basename(model_path))
+    logger.info("mmproj ファイル: %s", os.path.basename(mmproj_path))
+
     chat_handler = None
+    handler_name = "none"
+
     try:
         from llama_cpp.llama_chat_format import Qwen25VLChatHandler
 
         chat_handler = Qwen25VLChatHandler(clip_model_path=mmproj_path)
-        logger.info("Qwen25VLChatHandler を使用します")
+        handler_name = "Qwen25VLChatHandler"
+        logger.info("Chat handler: %s", handler_name)
     except ImportError:
-        try:
-            from llama_cpp.llama_chat_format import Llava15ChatHandler
-
-            chat_handler = Llava15ChatHandler(clip_model_path=mmproj_path)
-            logger.info("Llava15ChatHandler を使用します（Qwen ハンドラなし）")
-        except Exception as e2:
-            logger.exception("チャットハンドラの初期化に失敗: %s", e2)
-            return
-    except Exception as e:
         logger.warning(
-            "Qwen25VLChatHandler の初期化に失敗、Llava15 にフォールバック: %s", e
+            "Qwen25VLChatHandler が見つかりません（llama-cpp-python >= 0.3.10 が必要）"
         )
+    except Exception as e:
+        logger.warning("Qwen25VLChatHandler 初期化失敗: %s", e)
+
+    if chat_handler is None:
         try:
             from llama_cpp.llama_chat_format import Llava15ChatHandler
 
             chat_handler = Llava15ChatHandler(clip_model_path=mmproj_path)
-            logger.info("Llava15ChatHandler を使用します")
-        except Exception as e2:
-            logger.exception("チャットハンドラの初期化に失敗: %s", e2)
-            return
+            handler_name = "Llava15ChatHandler (fallback)"
+            logger.info("Chat handler: %s", handler_name)
+        except Exception as e:
+            logger.error(
+                "Llava15ChatHandler フォールバックも失敗: %s\n"
+                "→ llama-cpp-python を 0.3.13 以上に更新してください:\n"
+                "  pip install --upgrade llama-cpp-python",
+                e,
+            )
+            raise RuntimeError(
+                "VLM Chat Handler を初期化できません。"
+                "pip install --upgrade llama-cpp-python を実行してください。"
+            ) from e
 
     from llama_cpp import Llama
 

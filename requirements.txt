@@ -1,7 +1,7 @@
 # Python 3.11–3.14: 3.14 では Pillow>=12 / pydantic>=2.12 が必要（ホイール提供のため）
 fastapi==0.115.12
 uvicorn[standard]==0.34.2
-llama-cpp-python==0.3.8
+llama-cpp-python>=0.3.13
 mss==9.0.2
 pyautogui==0.9.54
 pywin32>=310
