@@ -5,8 +5,14 @@
 ## 前提
 
 - Windows 10 / 11
-- Python **3.11 以上**
-- 初回起動時に Hugging Face から **Qwen2.5-VL-3B-Instruct（GGUF）** と **mmproj** が `~/.luna/models/` にダウンロードされます（容量・時間に注意）。
+- Python **3.11 以上**（**3.14** でも可。古い `Pillow==11.x` / `pydantic==2.11.x` 固定だとビルドに失敗するため、本リポジトリの `requirements.txt` は **Pillow 12+ / pydantic 2.12+** に合わせています）
+- 初回起動時に Hugging Face から **Qwen2.5-VL-3B-Instruct（GGUF）** と **mmproj** が `~/.luna/models/` にダウンロードされます（容量・時間に注意）
+
+**`ModuleNotFoundError`（例: pyautogui）のときは、必ず次を実行してから `python server.py` してください。**
+
+```powershell
+python -m pip install -r requirements.txt
+```
 
 ## セットアップ
 
