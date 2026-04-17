@@ -10,8 +10,11 @@
 
 ## セットアップ
 
+リポジトリのルート（本 README があるディレクトリ）で実行します。
+
 ```powershell
-cd luna
+git clone https://github.com/matrix9neonebuchadnezzar2199-sketch/LUNA.git
+cd LUNA
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
@@ -21,8 +24,9 @@ pip install -r requirements.txt
 
 ## 起動
 
+仮想環境を有効化したうえで、リポジトリルートで実行します。
+
 ```powershell
-cd luna
 .\.venv\Scripts\Activate.ps1
 python server.py
 ```
